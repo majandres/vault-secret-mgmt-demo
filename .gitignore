@@ -1,0 +1,7 @@
+# Local .terraform directories
+**/.terraform/*
+.terraform/*
+.terraform.lock.hcl
+terraform.tfstate
+.tflint.d/
+config/
