@@ -14,7 +14,7 @@ spec:
           affinity: ""
           ha:
             enabled: true
-            raft: 
+            raft:
               enabled: true
         releaseName: vault
         valuesObject:
