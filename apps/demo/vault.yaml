@@ -4,9 +4,9 @@ metadata:
   name: vault
   namespace: argo-cd
 spec:
-  project: vault
+  project: demo
   sources:
-    - path: apps/secrets-mgmt/manifests/vault
+    - path: apps/demo/manifests/vault
       repoURL: https://github.com/majandres/vault-secret-mgmt-demo.git
       targetRevision: main
     - chart: vault

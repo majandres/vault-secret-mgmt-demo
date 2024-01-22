@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: vault
+  name: demo
   namespace: argo-cd
 spec:
   clusterResourceWhitelist:
@@ -17,16 +17,16 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: vault-root-app
+  name: demo-root-app
   namespace: argo-cd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
-  project: vault
+  project: demo
   destination:
     server: https://kubernetes.default.svc
   source:
-    path: apps/secrets-mgmt/
+    path: apps/demo/
     repoURL: 'https://github.com/majandres/vault-secret-mgmt-demo.git'
     targetRevision: main
   syncPolicy:
