@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mysql
+  namespace: argo-cd
+spec:
+  project: demo
+  sources:
+    - chart: mysql
+      repoURL: https://charts.bitnami.com/bitnami
+      targetRevision: 9.18.0
+      helm:
+        releaseName: mysql
+        valuesObject: {}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: mysql
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
