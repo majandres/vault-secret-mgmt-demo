@@ -6,6 +6,9 @@ metadata:
 spec:
   project: vault
   sources:
+    - path: apps/secrets-mgmt/manifests/vault
+      repoURL: https://github.com/majandres/vault-secret-mgmt-demo.git
+      targetRevision: main
     - chart: vault
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: 0.27.0
