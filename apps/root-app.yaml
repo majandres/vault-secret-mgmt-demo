@@ -26,7 +26,7 @@ spec:
   destination:
     server: https://kubernetes.default.svc
   source:
-    path: apps/vault/
+    path: apps/secrets-mgmt/
     repoURL: 'https://github.com/majandres/vault-secret-mgmt-demo.git'
     targetRevision: main
   syncPolicy:
