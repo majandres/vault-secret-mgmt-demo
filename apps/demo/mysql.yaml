@@ -11,7 +11,12 @@ spec:
       targetRevision: 9.18.0
       helm:
         releaseName: mysql
-        valuesObject: {}
+        valuesObject:
+          image:
+            repository: mysql
+            tag: 8.3.0
+          auth:
+            existingSecret: mysql-root-password
   destination:
     server: "https://kubernetes.default.svc"
     namespace: mysql
