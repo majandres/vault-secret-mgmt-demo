@@ -1,9 +1,35 @@
 import logging
-import hvac
 import time
+
+import hvac
+from hvac.api.auth_methods import Kubernetes
 
 from config import Config
 from mysql.connector import connect, Error
+
+
+def hvac_client():
+    client = hvac.Client(url=Config.VAULT_ADDR)
+
+    if Config.KUBERNETES_SERVICE_HOST:
+        log.debug("Detected Kubernetes platform, reading serviceaccount token from pod")
+
+        if not Config.VAULT_K8S_AUTH_ROLE:
+            log.error(f"Vault authentication role not found")
+            exit(1)
+
+        with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as f:
+            jwt = f.read()
+            Kubernetes(client.adapter).login(role=Config.VAULT_K8S_AUTH_ROLE, jwt=jwt)
+            return client
+
+    if Config.VAULT_TOKEN:
+        log.debug("Found VAULT_TOKEN value, using this token")
+        client.token = Config.VAULT_TOKEN
+        return client
+
+    log.error("No Vault authentication method found")
+    exit(1)
 
 
 def print_db_records(host, database, table, username, password):
@@ -28,7 +54,7 @@ def print_db_records(host, database, table, username, password):
 
 def main():
     try:
-        log.debug(f"Using role '{Config.VAULT_DB_ROLE}' to request DB credentials")
+        log.debug(f"Requesting role '{Config.VAULT_DB_ROLE}' for DB credentials")
         credentials = client.secrets.database.generate_credentials(
             name=Config.VAULT_DB_ROLE,
             mount_point=Config.VAULT_DB_MOUNT_POINT
@@ -41,7 +67,7 @@ def main():
     password = credentials['data']['password']
     log.debug(f"Credentials received: {username}")
 
-    print_db_records('localhost', 'demo', 'countries', username, password)
+    print_db_records(Config.DB_HOST, Config.DB_NAME, Config.DB_TABLE, username, password)
 
 
 if __name__ == "__main__":
@@ -49,10 +75,7 @@ if __name__ == "__main__":
     log = logging.getLogger(__name__)
     log.setLevel(Config.LOG_LEVEL)
 
-    client = hvac.Client(
-        url=Config.VAULT_ADDR,
-        token=Config.VAULT_TOKEN
-    )
+    client = hvac_client()
     log.info(f"hvac client created for {Config.VAULT_ADDR}")
 
     # Basic checks before continuing
