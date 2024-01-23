@@ -1,5 +1,6 @@
 import logging
 import hvac
+import time
 
 from config import Config
 from mysql.connector import connect, Error
@@ -49,10 +50,10 @@ if __name__ == "__main__":
     log.setLevel(Config.LOG_LEVEL)
 
     client = hvac.Client(
-        url=Config.VAUL_ADDR,
-        token=Config.VAUL_TOKEN
+        url=Config.VAULT_ADDR,
+        token=Config.VAULT_TOKEN
     )
-    log.info(f"hvac client created for {Config.VAUL_ADDR}")
+    log.info(f"hvac client created for {Config.VAULT_ADDR}")
 
     # Basic checks before continuing
     try:
@@ -68,5 +69,5 @@ if __name__ == "__main__":
         log.error(e)
         exit(1)
 
-    log.info(f"Vault at {Config.VAUL_ADDR} is available")
+    log.info(f"Vault at {Config.VAULT_ADDR} is available")
     main()
