@@ -5,3 +5,8 @@
 terraform.tfstate
 .tflint.d/
 config/
+
+notes.txt
+*-keys.*
+venv/
+__pycache__
