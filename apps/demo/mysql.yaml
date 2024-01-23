@@ -16,6 +16,7 @@ spec:
             repository: mysql
             tag: 8.3.0
           auth:
+            database: demo
             existingSecret: mysql-root-password
   destination:
     server: "https://kubernetes.default.svc"
