@@ -5,24 +5,27 @@ metadata:
   namespace: argo
 spec:
   project: argo
-  source:
-    chart: argo-cd
-    repoURL: https://argoproj.github.io/argo-helm
-    targetRevision: 5.51.6
-    helm:
-      releaseName: argocd
-      valuesObject:
-        configs:
-          cm:
-            exec.enabled: true
-          rbac:
-            policy.default: role:readonly
-        applicationSet:
-          enabled: false
-        notifications:
-          enabled: false
-        dex:
-          enabled: false
+  sources:
+    - path: apps/argo/manifests
+      repoURL: https://github.com/majandres/vault-secret-mgmt-demo.git
+      targetRevision: main
+    - chart: argo-cd
+      repoURL: https://argoproj.github.io/argo-helm
+      targetRevision: 5.51.6
+      helm:
+        releaseName: argocd
+        valuesObject:
+          configs:
+            cm:
+              exec.enabled: true
+            rbac:
+              policy.default: role:readonly
+          applicationSet:
+            enabled: false
+          notifications:
+            enabled: false
+          dex:
+            enabled: false
   destination:
     server: "https://kubernetes.default.svc"
     namespace: argo
