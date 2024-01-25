@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argo
+spec:
+  project: argo
+  source:
+    chart: argo-cd
+    repoURL: https://argoproj.github.io/argo-helm
+    targetRevision: 5.51.6
+    helm:
+      releaseName: argocd
+      valuesObject:
+        configs:
+          cm:
+            exec.enabled: true
+          rbac:
+            policy.default: role:readonly
+        applicationSet:
+          enabled: false
+        notifications:
+          enabled: false
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: argo
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true

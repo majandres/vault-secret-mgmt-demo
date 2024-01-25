@@ -1,8 +1,25 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
   name: demo
-  namespace: argo-cd
+  namespace: argo
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - name: in-cluster
+    namespace: '*'
+    server: https://kubernetes.default.svc
+  sourceRepos:
+  - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: argo
+  namespace: argo
 spec:
   clusterResourceWhitelist:
   - group: '*'
@@ -18,17 +35,20 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: demo-root-app
-  namespace: argo-cd
+  namespace: argo
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: demo
   destination:
     server: https://kubernetes.default.svc
-  source:
-    path: apps/demo/
-    repoURL: 'https://github.com/majandres/vault-secret-mgmt-demo.git'
-    targetRevision: main
+  sources:
+    - path: apps/argo/
+      repoURL: 'https://github.com/majandres/vault-secret-mgmt-demo.git'
+      targetRevision: main
+    - path: apps/demo/
+      repoURL: 'https://github.com/majandres/vault-secret-mgmt-demo.git'
+      targetRevision: main
   syncPolicy:
     syncOptions:
     - CreateNamespace=true
