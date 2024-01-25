@@ -42,10 +42,32 @@ Afterwards, navigate to the `./terraform` directory where the required infrastru
 1. `terraform init -reconfigure -backend-config=config/backend-demo.conf`
 2. `terraform plan -var-file=config/demo.tfvars -out=test`
 
+
+# Getting Started
+Start up minikube `minikube start`
+
+Enable the ingress addon for minikube `minikube addons enable ingress`
+
+Start tunnel for ingress access `minikube tunnel`
+
+Let's take a GitOps approach and install ArgoCD via it's [helm chart](https://artifacthub.io/packages/helm/argo/argo-cd) `helm repo add argo https://argoproj.github.io/argo-helm`
+
+`helm install --create-namespace --namespace argo argocd argo/argo-cd`
+
+Apply the root-app `kubectl apply -f apps/root-app.yaml` to manage the appliication deployments (and argo itself).
+
+Create secret to use for mysql root password (wait a bit for argo to create the NS) `kubectl create secret generic -n mysql --from-literal=mysql-root-password=demo mysql-root-password`
+
+Fetch the admin login token for Argo `kubectl -n argo get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
+
+ArgoCD and Vault can be accessed on localhost via hostname
+* http://argocd.local
+* http://vault.local
+
 ## Vault Provisioning
 Initialize Vault
 ```
-kubectl exec vault-0 -- vault operator init \
+kubectl exec vault-0 -n vault -- vault operator init \
     -key-shares=1 \
     -key-threshold=1 \
     -format=json > cluster-keys.json
@@ -55,24 +77,24 @@ VAULT_UNSEAL_KEY=$(jq -r ".unseal_keys_b64[]" cluster-keys.json)
 
 Unseal vault pod
 ```
-kubectl exec vault-0 -- vault operator unseal $VAULT_UNSEAL_KEY
+kubectl exec vault-0 -n vault -- vault operator unseal $VAULT_UNSEAL_KEY
 ```
 
 Join the other vaults to the Raft cluster
 ```
-kubectl exec -ti vault-1 -- vault operator raft join http://vault-0.vault-internal:8200
-kubectl exec -ti vault-2 -- vault operator raft join http://vault-0.vault-internal:8200
+kubectl exec -ti vault-1 -n vault -- vault operator raft join http://vault-0.vault-internal:8200
+kubectl exec -ti vault-2 -n vault -- vault operator raft join http://vault-0.vault-internal:8200
 ```
 
 Unseatl the other vaults
 ```
-kubectl exec -ti vault-1 -- vault operator unseal $VAULT_UNSEAL_KEY
-kubectl exec -ti vault-2 -- vault operator unseal $VAULT_UNSEAL_KEY
+kubectl exec -ti vault-1 -n vault -- vault operator unseal $VAULT_UNSEAL_KEY
+kubectl exec -ti vault-2 -n vault -- vault operator unseal $VAULT_UNSEAL_KEY
 ```
 
 ## Enable Kubernetes Auth on Vault
 ```
-kubectl exec --stdin=true --tty=true vault-0 -- /bin/sh
+kubectl exec --stdin=true --tty=true vault-0 -n vault -- /bin/sh
 
 vault auth enable kubernetes
 vault write auth/kubernetes/config \
