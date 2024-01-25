@@ -21,6 +21,8 @@ spec:
           enabled: false
         notifications:
           enabled: false
+        dex:
+          enabled: false
   destination:
     server: "https://kubernetes.default.svc"
     namespace: argo
