@@ -8,8 +8,33 @@ from config import Config
 from mysql.connector import connect, Error
 
 
+def vault_check(client):
+    # Basic checks before continuing
+    try:
+        log.info(f"Checking if Vault is initialized and unsealed")
+        if not client.sys.is_initialized():
+            log.error(f"Vault is not initialized")
+            exit(1)
+
+        if client.sys.is_sealed():
+            log.error(f"Vault is sealed")
+            exit(1)
+    except Exception as e:
+        log.error(e)
+        exit(1)
+
+    log.info(f"Vault at {Config.VAULT_ADDR} is available")
+
+
 def hvac_client():
     client = hvac.Client(url=Config.VAULT_ADDR)
+
+    vault_check(client)
+
+    if Config.VAULT_TOKEN:
+        log.debug("Found VAULT_TOKEN value, using this token")
+        client.token = Config.VAULT_TOKEN
+        return client
 
     if Config.KUBERNETES_SERVICE_HOST:
         log.debug("Detected Kubernetes platform, reading serviceaccount token from pod")
@@ -18,15 +43,14 @@ def hvac_client():
             log.error(f"Vault authentication role not found")
             exit(1)
 
-        with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as f:
-            jwt = f.read()
-            Kubernetes(client.adapter).login(role=Config.VAULT_K8S_AUTH_ROLE, jwt=jwt)
-            return client
-
-    if Config.VAULT_TOKEN:
-        log.debug("Found VAULT_TOKEN value, using this token")
-        client.token = Config.VAULT_TOKEN
-        return client
+        try:
+            with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as f:
+                jwt = f.read()
+                Kubernetes(client.adapter).login(role=Config.VAULT_K8S_AUTH_ROLE, jwt=jwt)
+                return client
+        except Exception as e:
+            log.error(e)
+            exit(1)
 
     log.error("No Vault authentication method found")
     exit(1)
@@ -78,19 +102,4 @@ if __name__ == "__main__":
     client = hvac_client()
     log.info(f"hvac client created for {Config.VAULT_ADDR}")
 
-    # Basic checks before continuing
-    try:
-        log.info(f"Checking if Vault is initialized and unsealed")
-        if not client.sys.is_initialized():
-            log.error(f"Vault is not initialized")
-            exit(1)
-
-        if client.sys.is_sealed():
-            log.error(f"Vault is sealed")
-            exit(1)
-    except Exception as e:
-        log.error(e)
-        exit(1)
-
-    log.info(f"Vault at {Config.VAULT_ADDR} is available")
     main()
