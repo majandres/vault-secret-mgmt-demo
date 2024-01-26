@@ -1,4 +1,10 @@
 # Secret Management with HashiCorp Vault
+This demo illustrates the integration of Vault with Kubernetes, featuring a sample MySQL instance and a pod executing a select query from MySQL using a dynamically retrieved secret from Vault.
+
+The pod will run a python script as a CronJob that will print the contents of a simple select statement every minute.
+
+The demo can run within a minikube running within localhost, or you can utilize the terraform code to deploy an ec2 instance in an AWS environment.
+
 
 ## Required Tools
 * terraform
@@ -48,8 +54,6 @@ Start up minikube `minikube start`
 
 Enable the ingress addon for minikube `minikube addons enable ingress`
 
-Start tunnel for ingress access `minikube tunnel`
-
 Let's take a GitOps approach and install ArgoCD via it's [helm chart](https://artifacthub.io/packages/helm/argo/argo-cd) `helm repo add argo https://argoproj.github.io/argo-helm`
 
 `helm install --create-namespace --namespace argo argocd argo/argo-cd`
@@ -59,6 +63,8 @@ Apply the root-app `kubectl apply -f apps/root-app.yaml` to manage the appliicat
 Create secret to use for mysql root password (wait a bit for argo to create the NS) `kubectl create secret generic -n mysql --from-literal=mysql-root-password=demo mysql-root-password`
 
 Fetch the admin login token for Argo `kubectl -n argo get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
+
+Start tunnel for ingress access `minikube tunnel`
 
 ArgoCD and Vault can be accessed on localhost via hostname
 * http://argocd.local
@@ -86,7 +92,7 @@ kubectl exec -ti vault-1 -n vault -- vault operator raft join http://vault-0.vau
 kubectl exec -ti vault-2 -n vault -- vault operator raft join http://vault-0.vault-internal:8200
 ```
 
-Unseatl the other vaults
+Unseal the other vaults
 ```
 kubectl exec -ti vault-1 -n vault -- vault operator unseal $VAULT_UNSEAL_KEY
 kubectl exec -ti vault-2 -n vault -- vault operator unseal $VAULT_UNSEAL_KEY
@@ -134,4 +140,36 @@ vault write database/config/mysql-database \
      allowed_roles=py-demo \
      username="root" \
      password="demo"
+```
+
+## Database init
+Create the table and add some data for the demo
+```
+kubectl run mysql-client --rm --tty -i --restart='Never' --image  mysql:latest --namespace mysql --command -- bash
+
+mysql -h mysql.mysql.svc.cluster.local -uroot -p"demo"
+
+use demo
+
+DROP TABLE IF EXISTS `countries`;
+
+CREATE TABLE `countries` (
+  `id` mediumint(8) unsigned NOT NULL auto_increment,
+  `country` varchar(100) default NULL,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=1;
+
+INSERT INTO `countries` (`country`)
+VALUES
+  ("United Kingdom"),
+  ("Canada"),
+  ("South Africa"),
+  ("United States"),
+  ("Germany"),
+  ("Singapore"),
+  ("Australia"),
+  ("Vietnam"),
+  ("Belgium"),
+  ("New Zealand"),
+  ("Philippines");
 ```
