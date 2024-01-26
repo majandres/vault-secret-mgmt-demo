@@ -48,7 +48,7 @@ spec:
       targetRevision: main
     - path: apps/demo/
       repoURL: 'https://github.com/majandres/vault-secret-mgmt-demo.git'
-      targetRevision: py-demo # TODO change back to main
+      targetRevision: py-demo-argo # TODO change back to main
   syncPolicy:
     syncOptions:
     - CreateNamespace=true
