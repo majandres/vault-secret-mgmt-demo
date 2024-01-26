@@ -8,10 +8,10 @@ spec:
   sources:
     - path: apps/demo/manifests/py-demo
       repoURL: https://github.com/majandres/vault-secret-mgmt-demo.git
-      targetRevision: py-demo-argo
+      targetRevision: main
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: demo  # TODO change to main
+    namespace: demo
   syncPolicy:
     syncOptions:
     - CreateNamespace=true
